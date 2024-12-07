@@ -1,29 +1,41 @@
-﻿using eTickets.Data;
+﻿using eTickets.Data.Services;
+using eTickets.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eTickets.Controllers
 {
     public class ActorsController : Controller
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly IActorsService _actorsService;
 
-        public ActorsController(AppDbContext appDbContext)
+        public ActorsController(IActorsService actorsService)
         {
-            _appDbContext = appDbContext;
+            _actorsService = actorsService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var actorsData = _appDbContext.Actors.ToList();
+            var actorsData = await _actorsService.GetAllActors();
             return View(actorsData);
         }
 
-        //Get: Actors/Create
+        // This is simple "Get" request: Actors/Create
         // async Task<IActionResult> we are removing async n Task because we are not performing any data
         // manipulaion
         public IActionResult Create()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([Bind("FullName, ProfilePictureURL, Bio")]Actor actor) 
+        {
+            if (ModelState.IsValid)
+            {
+                return View(actor);
+            }
+            _actorsService.Add(actor);
+            return RedirectToAction("Index");
         }
     }
 }
